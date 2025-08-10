@@ -1,14 +1,12 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import Layout from '@/components/layout/Layout';
 import MembershipTiers from '@/components/membership/MembershipTiers';
-import PaymentForm from '@/components/membership/PaymentForm';
+import UnifiedPaymentWindow from '@/components/payment/UnifiedPaymentWindow'; // ✅ Added import
 import { Button } from '@/components/ui/button';
 import { CheckCircle, ArrowLeft } from 'lucide-react';
-import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { useMembership } from '@/hooks/useMembership';
 
@@ -22,18 +20,18 @@ const MembershipPayment = () => {
   const [showPayment, setShowPayment] = useState(false);
   const [paymentComplete, setPaymentComplete] = useState(false);
 
-  // If user already has active membership, redirect to dashboard
-  useEffect(() => {
-    if (user && !membershipLoading && membership && membership.is_active) {
-      navigate('/dashboard');
-    }
-  }, [user, membership, membershipLoading, navigate]);
-
   const plans = {
     essential: { name: 'Essential', price: '10,000', monthly: '1,000' },
     premium: { name: 'Premium', price: '10,000', monthly: '2,000' },
     elite: { name: 'Elite', price: '10,000', monthly: '5,000' },
   };
+
+  // If user already has active membership, redirect to dashboard
+  useEffect(() => {
+    if (user && !membershipLoading && membership?.is_active) {
+      navigate('/dashboard');
+    }
+  }, [user, membership, membershipLoading, navigate]);
 
   // Auto-select plan from URL if provided
   useEffect(() => {
@@ -43,26 +41,15 @@ const MembershipPayment = () => {
     }
   }, [planFromUrl]);
 
-  const handleSelectTier = (tier: string) => {
-    setSelectedTier(tier);
-  };
+  const handleSelectTier = (tier: string) => setSelectedTier(tier);
+  const handleProceedToPayment = () => setShowPayment(true);
 
-  const handleProceedToPayment = () => {
-    setShowPayment(true);
-  };
-
-  const handlePaymentComplete = () => {
-    // Create membership record and then show success
-    createMembershipRecord();
-  };
-
-  const createMembershipRecord = async () => {
+  const handlePaymentComplete = async () => {
     if (!user || !selectedTier) {
       toast.error('Please log in and select a membership tier');
       navigate('/login');
       return;
     }
-
     try {
       const expiryDate = new Date();
       expiryDate.setFullYear(expiryDate.getFullYear() + 1);
@@ -78,7 +65,6 @@ const MembershipPayment = () => {
         });
 
       if (error) throw error;
-
       setPaymentComplete(true);
     } catch (error) {
       console.error('Error creating membership:', error);
@@ -96,9 +82,7 @@ const MembershipPayment = () => {
             <p className="text-lg text-gray-600">
               Welcome to Elverra Global {plans[selectedTier as keyof typeof plans]?.name} membership!
             </p>
-            <p className="text-gray-600">
-              You will receive your digital membership card via email within 24 hours.
-            </p>
+            <p className="text-gray-600">You will receive your digital membership card via email within 24 hours.</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild className="bg-purple-600 hover:bg-purple-700">
                 <Link to="/dashboard">Go to Dashboard</Link>
@@ -113,7 +97,6 @@ const MembershipPayment = () => {
     );
   }
 
-  // Show loading while checking membership status
   if (membershipLoading) {
     return (
       <Layout>
@@ -155,7 +138,6 @@ const MembershipPayment = () => {
                 selectedTier={selectedTier} 
                 onSelectTier={handleSelectTier}
               />
-              
               {selectedTier && (
                 <div className="text-center">
                   <Button 
@@ -170,9 +152,9 @@ const MembershipPayment = () => {
             </div>
           ) : (
             <div className="flex justify-center">
-              <PaymentForm 
-                selectedPlan={plans[selectedTier as keyof typeof plans]}
-                onPaymentComplete={handlePaymentComplete}
+              <UnifiedPaymentWindow 
+                plan={selectedTier} 
+                onSuccess={handlePaymentComplete}
               />
             </div>
           )}
