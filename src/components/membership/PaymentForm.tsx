@@ -183,7 +183,8 @@ const PaymentForm = ({ selectedPlan, onPaymentComplete }: PaymentFormProps) => {
               </div>
               <div className="bg-orange-50 p-3 rounded-lg">
                 <p className="text-sm text-orange-700">
-                  You will receive a payment request on your Orange Money account to complete the transaction.
+                  You will receive a payment request on your Orange Money account. Please check your phone 
+                  and approve the transaction to complete your payment. This may take a few moments to appear.
                 </p>
               </div>
             </>

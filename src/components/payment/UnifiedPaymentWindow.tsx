@@ -331,8 +331,9 @@ const UnifiedPaymentWindow = ({ isOpen, onClose, onSuccess, preSelectedService }
                               Fee: {gateway.fees.percentage}%
                               {gateway.fees.fixed > 0 && ` + ${gateway.fees.fixed} CFA`}
                             </span>
-                          </div>
-                        </div>
+                          You will receive a payment request on your {getGatewayById(selectedGateway)?.name} account. 
+                          Please check your phone and approve the transaction to complete your payment.
+                          This may take a few moments to appear on your device.
                         <span className="text-2xl">{gateway.icon}</span>
                       </div>
                     </CardContent>

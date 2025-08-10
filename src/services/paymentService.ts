@@ -32,6 +32,8 @@ class PaymentService {
 
   private async processOrangeMoneyPayment(gateway: PaymentGateway, request: PaymentRequest): Promise<PaymentResponse> {
     try {
+      console.log('Processing Orange Money payment:', { gateway: gateway.name, amount: request.amount });
+      
       const paymentData = {
         amount: request.amount,
         currency: request.currency,
@@ -43,10 +45,19 @@ class PaymentService {
         returnUrl: `${window.location.origin}/payment/success`
       };
 
+      console.log('Orange Money payment data:', paymentData);
+      
       const response = await orangeMoneyService.initiatePayment(paymentData);
       
+      console.log('Orange Money response:', response);
+      
       if (!response.success) {
-        throw new Error(response.error || 'Orange Money payment failed');
+        console.warn('Orange Money payment failed:', response.error);
+        // Don't throw error, return the response as-is for better error handling
+        return {
+          success: false,
+          error: response.error || 'Orange Money payment failed'
+        };
       }
 
       return {
@@ -57,7 +68,11 @@ class PaymentService {
       };
     } catch (error) {
       console.error('Orange Money payment error:', error);
-      throw error;
+      // Return error response instead of throwing
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Orange Money payment processing failed'
+      };
     }
   }
 
